@@ -7,26 +7,57 @@
 	<title>My Web Mail System</title>
 </head>
 
-<body>
+<body onload="pullEmails()">
 	<!-- heading -->
-	<div id="heading">
+	<a href="webmail.html" id="heading">
 		<img src="images/heading.png">
-	</div>
+	</a>
 	<!-- buttons -->
 	<div id="buttons">
 		<button type="button" id="delete">Delete</button>
-		<button type="button" id="move">Move to XXX</button>
+		<button type="button" id="move">Move to Important</button>
 		&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
 		<button type="button" id="left"><</button>
 		<button type="button" id="right">></button>
 	</div>
+	<br>
 	<!-- mailboxes -->
-	<div id="mailboxes">
-		<a href="">Inbox</a>
-		<a href="">Important</a>
-		<a href="">Trash</a>
+	<div id="mailboxes" class="col-3">
+		<ul>
+			<li class="current"><a href="">Inbox</a></li>
+			<li><a href="">Important</a></li>
+			<li><a href="">Trash</a></li>
+		</ul>
 	</div>
 	<!-- email list -->
-	<div id="emails"></div>
+	<div id="emails" class="col-9">
+		<p>Email Contents</p>
+		<form id="content" action="">
+			
+		</form>
+	</div>
 </body>
 </html>
+
+<script type="text/javascript">
+	lastRecord = 0;
+	function pullEmails(){
+		var xmlhttp;
+		if (window.XMLHttpRequest){ // for IE7+, Firefox, Chrome
+			xmlhttp = new XMLHttpRequest();
+		}else{ // for IE6, IE5
+			xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+		}
+
+		xmlhttp.onreadystatechange=function() {
+			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+				document.getElementById("content").innerHTML = xmlhttp.responseText;
+			}
+		}
+
+		xmlhttp.open("GET", "handleEmailDisplay.php?lastRecord="+lastRecord, true);
+		xmlhttp.send();
+
+		lastRecord += 10;
+	}
+</script>
