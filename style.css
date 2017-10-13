@@ -3,40 +3,78 @@
 }
 
 body {
-	margin-left: 30px;
-	margin-right: 100px;
-	padding-bottom: 200px;
+	margin-left: 10px;
 	font-size: 12pt;
+	font-family: monospace;
 }
 
 #heading {
 	display: block;
 	height: auto;
-	width: auto;
 	max-width: 100%;
-	margin: auto;
+	/*margin: auto;
 	margin-top: 10px;
-	margin-bottom: 10px;
+	margin-bottom: 10px;*/
 }
 
 #buttons {
-	text-align: center;
-	position: relative;
+	margin-left: 160px;
+	/*text-align: center;*/
+	/*position: static;*/
+}
+
+button {
+	font-weight: bold;
 }
 
 #mailboxes {
 	float: left;
 }
 
-#mailboxes ul {
+#mailboxes a { 
+	text-decoration: none;
+	color: white;
+	font-family: system-ui;
+    font-size: 20px;
+}
+
+#mailboxes li {
 	list-style-type: none;
+	display: block;
+}
+
+#mailboxes ul {
+	background-color: #808080;
+	width: 110%;
+    padding: 10px;
 }
 
 .current {
-	background-color: lightyellow;
+	font-weight: bold;
+	background-color: #DAA529;
 }
 
 #emails {
 	float: left;
 	margin-left: 40px;
+}
+
+/* not working */
+input[type=checkbox] {
+	border: 2px solid black;
+}
+
+@media only screen and (max-width: 550px) {
+	#mailboxes {
+		width: 100%;
+	}
+	#emails {
+		width: 100%;
+	}
+}
+
+@media only screen and (max-width: 1000px) and (min-width: 550px) {
+	#emails {
+		width: 440px;
+	}
 }

@@ -6,7 +6,7 @@ $conn = mysqli_connect('sophia.cs.hku.hk', 'hrqiu', '0414qhr') or die('Error! '.
 mysqli_select_db($conn, 'hrqiu') or die('Error! '.mysqli_error($conn));
 
 // create sql query
-$query = 'SELECT emailID, sender, title, date FROM emails LIMIT '.$_GET['lastRecord'].', 10;';
+$query = 'SELECT emailID, sender, title, date FROM emails WHERE mailBox='.$_GET['mailBox'].' LIMIT '.$_GET['lastRecord'].', 10;';
 
 // execute the query
 $result = mysqli_query($conn, $query) or die('Error! '.mysqli_error($conn));
@@ -14,6 +14,6 @@ $result = mysqli_query($conn, $query) or die('Error! '.mysqli_error($conn));
 // fetch the result
 while ($row = mysqli_fetch_array($result)) {
 	// display to client side
-	print "<input type=\"checkbox\" id=\"".$row["emailID"]."\">&nbsp&nbsp&nbsp&nbsp".$row["sender"]."&nbsp&nbsp&nbsp&nbsp".$row["title"]."&nbsp&nbsp&nbsp&nbsp".$row["date"]."<br>";
+	print "<div><input type=\"checkbox\" name=\"emailrow\" id=\"".$row["emailID"]."\">&nbsp&nbsp&nbsp&nbsp".$row["sender"]."&nbsp&nbsp&nbsp&nbsp".$row["title"]."&nbsp&nbsp&nbsp&nbsp".$row["date"]."<div><br>";
 }
 ?>
