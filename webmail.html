@@ -9,14 +9,14 @@
 	<title>My Web Mail System</title>
 </head>
 
-<body>
+<body onload="pullEmails()">
 	<!-- heading -->
 	<a href="webmail.html">
 		<img id="heading" src="images/heading.png">
 	</a>
 	<!-- buttons -->
 	<div id="buttons">
-		<button type="button" id="delete" onclick="deleteEmails()">Delete</button>
+		<button type="button" id="delete" onclick="deleteEmails(this)">Delete</button>
 		<button type="button" id="move" onclick="moveEmails(this)">Move to Important</button>
 		&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
 		<button type="button" id="left" onclick="popEmails()"><</button>
@@ -27,16 +27,18 @@
 	<!-- mailboxes -->
 	<div id="mailboxes" class="col-3">
 		<ul>
-			<li class="list current"><a href="#" id="inbox" onclick="changeBoxView(this)">&nbspInbox</a></li>
-			<li class="list"><a href="#" id="important" onclick="changeBoxView(this)">&nbspImportant</a></li>
-			<li class="list"><a href="#" id="trash" onclick="changeBoxView(this)">&nbspTrash</a></li>
+			<li class="list current"><a id="inbox" onclick="changeBoxView(this)">&nbspInbox</a></li><br>
+			<li class="list"><a id="important" onclick="changeBoxView(this)">&nbspImportant</a></li><br>
+			<li class="list"><a id="trash" onclick="changeBoxView(this)">&nbspTrash</a></li>
 		</ul>
 	</div>
 	<!-- email list -->
 	<div id="emails" class="col-9">
-		<form id="content" action="">
+		<div id="content">
 			
-		</form>
+		</div>
+	</div>
+	<div id="emailcontent" class="col-9">
 	</div>
 </body>
 </html>
@@ -45,10 +47,9 @@
 	inboxLastRecord = 0;
 	importantLastRecord = 0;
 	trashLastRecord = 0;
-	$(document).ready(function() {
-		pullEmails();
-	})
+	
 	function pullEmails(){
+		console.log("pullEmails is called");
 		var xmlhttp;
 		if (window.XMLHttpRequest){ // for IE7+, Firefox, Chrome
 			xmlhttp = new XMLHttpRequest();
@@ -56,19 +57,31 @@
 			xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
 		}
 
+		var nomore = false;
 		xmlhttp.onreadystatechange=function() {
 			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-				document.getElementById("content").innerHTML = xmlhttp.responseText;
+				if (xmlhttp.responseText == '<table></table>') {
+					alert("No more emails!");
+					nomore = true;
+					if ($(".current").children().attr('id') == 'important') {
+						importantLastRecord -= 10;
+					}
+					else if ($(".current").children().attr('id') == 'trash') {
+						trashLastRecord -= 10;
+					} else {
+						inboxLastRecord -= 10;
+					}
+				} else
+					document.getElementById("content").innerHTML = xmlhttp.responseText;
 			}
 		}
 		
 		var url = "handleEmailDisplay.php?";
-		console.log($(".current").attr('class'));
-		if ($(".current:first-child").id == 'important') {
+		if ($(".current").children().attr('id') == 'important') {
 			url += "mailBox='important'&lastRecord=" + importantLastRecord;
 			importantLastRecord += 10;
 		}
-		else if ($(".current:first-child").attr("id") == 'trash') {
+		else if ($(".current").children().attr('id') == 'trash') {
 			url += "mailBox='trash'&lastRecord=" + trashLastRecord;
 			trashLastRecord += 10;
 		} else {
@@ -78,50 +91,80 @@
 
 		xmlhttp.open("GET", url, true);
 		xmlhttp.send();
-		alert(inboxLastRecord + " " + importantLastRecord + " " + trashLastRecord);
+		console.log("inbox: " + inboxLastRecord + " important: " + importantLastRecord + " trash: " + trashLastRecord);
 	}
 
 	function popEmails() {
-		if ($(".current:first-child").attr("id") == 'inbox') {
-			inboxLastRecord = inboxLastRecord - 30;
+		console.log("popEmails is called");
+		if ($(".current").children().attr('id') == 'inbox') {
+			inboxLastRecord = inboxLastRecord - 20;
 			if (inboxLastRecord < 0)
 				inboxLastRecord = 0;
 		}
-		else if ($(".current:first-child").attr("id") == 'important') {
-			importantLastRecord = importantLastRecord - 30;
+		else if ($(".current").children().attr('id') == 'important') {
+			importantLastRecord = importantLastRecord - 20;
 			if (importantLastRecord < 0)
 				importantLastRecord = 0;
 		}
-		else if ($(".current:first-child").attr("id") == 'trash') {
-			trashLastRecord = trashLastRecord - 30;
+		else if ($(".current").children().attr('id') == 'trash') {
+			trashLastRecord = trashLastRecord - 20;
 			if (trashLastRecord < 0)
 				trashLastRecord = 0;
 		}
+		console.log("inbox: " + inboxLastRecord + " important: " + importantLastRecord + " trash: " + trashLastRecord);
 		pullEmails();
-		alert(inboxLastRecord + " " + importantLastRecord + " " + trashLastRecord);
 	}
 </script>
 <script>
-	function deleteEmails() {
+	function deleteEmails(item) {
 		var total=$("#content").find('input[name="emailrow"]:checked').length;
 		if (total == 0) {
 			alert("No email selected!");
 			return;
 		}
-		var ret = confirm("Are you sure to delete the selected emails?");
+		// console.log($("input:checked")[0].id); // attr("id") not work here
+		var checked = $("input:checked");
+		var ret;
+		if ($(item).text() == 'Delete')
+			ret = confirm("Are you sure to move the selected emails to Trash?");
+		else
+			ret = confirm("Are you sure to delete the selected emails forever? By doing that you can never get them back!");
 		if (ret == true) {
-			$('#content').submit(function(event) {
+			for (var i = 0; i < checked.length; i++) {
+				console.log(i + ": " + $("input:checked")[i].id)
+				var id = $("input:checked")[i].id;
+				var path = 'handleMailboxChange.php?mailbox=trash&emailID=' + id;
+				if ($(item).text() != 'Delete')
+					path = 'handleMailboxChange.php?mailbox=delete&emailID=' + id;
 				$.ajax({
-					url: 'handleMailboxChange.php?mailBox=trash',
+					url: path,
 					type: 'get',
 					datatype: 'json',
-					data: $("#content:checked"),
+					// data: id,
 					success: function(data) {
-
+						console.log("AJAX sucess! " + data);
+					},
+					error: function(data) {
+						console.log(data);
 					}
 				});
-			})
+			}
+			if ($(".current").children().attr('id') == 'inbox') {
+				inboxLastRecord = inboxLastRecord - 10;
+				if (inboxLastRecord < 0)
+					inboxLastRecord = 0;
+			} else if ($(".current").children().attr('id') == 'important') {
+				importantLastRecord = importantLastRecord - 10;
+				if (importantLastRecord < 0)
+					importantLastRecord = 0;
+			} else if ($(".current").children().attr('id') == 'trash') {
+				trashLastRecord -= 10;
+				if (trashLastRecord < 0)
+					trashLastRecord = 0;
+			}
+			// pullEmails();
 		}
+		pullEmails();
 	}
 
 	function moveEmails(item) {
@@ -131,44 +174,105 @@
 			return;
 		}
 		var targetBox;
-		if (item.text() == 'Move to Important')
-			targetBox = 'Important';
+		console.log($(item).text());
+		if ($(item).text() == 'Move to Important')
+			targetBox = 'important';
 		else
-			targetBox = 'Inbox';
+			targetBox = 'inbox';
 		var ret = confirm("Are you sure to move the selected emails to " + targetBox + "?");
 		if (ret == true) {
-			$('#content').submit(function(event) {
+			for (var i = 0; i < total; i++) {
+				var path = "handleMailboxChange.php?mailbox="+targetBox+"&emailID="+$("#content").find('input[name="emailrow"]:checked')[i].id;
 				$.ajax({
-					url: 'handleMailboxChange.php?mailBox='+targetBox,
+					url: path,
 					type: 'get',
 					datatype: 'json',
-					data: $("#content:checked"),
 					success: function(data) {
-
+						console.log("AJAX success! " + data)
+					},
+					error: function(data) {
+						console.log(data);
 					}
 				});
-			})
-			item.text("Move to " + targetBox);
+			}
+			if ($(".current").children().attr('id') == 'inbox') {
+	                        inboxLastRecord = inboxLastRecord - 10;
+        	                if (inboxLastRecord < 0)
+                	                inboxLastRecord = 0;
+                	} else if ($(".current").children().attr('id') == 'important') {
+                        	importantLastRecord = importantLastRecord - 10;
+                        	if (importantLastRecord < 0)
+                                	importantLastRecord = 0;
+                	} else if ($(".current").children().attr('id') == 'trash') {
+                        	trashLastRecord -= 10;
+                        	if (trashLastRecord < 0)
+                                	trashLastRecord = 0;
+                	}
+                	// pullEmails();
 		}
+		pullEmails();
 	}
 </script>
 <script type="text/javascript">
 	function changeBoxView(item) {
 		if (item.id == 'inbox') {
-			inboxLastRecord -= 10;
-			if (inboxLastRecord < 0)
-				inboxLastRecord = 0;
+			inboxLastRecord = 0;
+			$("#delete").text("Delete");
+			$("#move").text("Move to Important");
+			$("#movetoimportant").remove();
 		} else if (item.id == 'important') {
-			importantLastRecord -= 10;
-			if (importantLastRecord < 0)
-				importantLastRecord = 0;
+			importantLastRecord = 0;
+			$("#delete").text("Delete");
+			$("#move").text("Move to Inbox")
+			$("#movetoimportant").remove();
 		} else if (item.id == 'trash') {
-			trashLastRecord -= 10;
-			if (trashLastRecord < 0)
-				trashLastRecord = 0;
+			trashLastRecord = 0;
+			$("#delete").text("Delete Forever");
+			$("#move").text("Move to Inbox");
+			$("#move").after("&nbsp<button type=\"button\" id=\"movetoimportant\" onclick=\"moveEmails(this)\">Move to Important</button>");
 		}
 		$(item).parent(".list").addClass("current");
 		$(item).parent(".list").siblings(".list").removeClass("current");
 		pullEmails();
+	}
+</script>
+<script>
+	var prevHTML;
+	function showContent(item) {
+		var url = "handleContentRequest.php?emailID=" + $(item).attr("rowid");
+		$.ajax({
+                        url: url,
+                        type: 'get',
+                        datatype: 'json',
+                        success: function(data) {
+                                console.log("AJAX success! ");
+				prevHTML = $("#content").html();
+			        $("#content").html(data);
+				$("#mailboxes").hide();
+				document.getElementById("move").disabled = true;
+                		document.getElementById("delete").disabled = true;
+                		if (document.getElementById("movetoimportant"))
+					document.getElementById("movetoimportant").disabled = true;
+                        	//document.getElementById("right").disabled = true;
+                		//document.getElementById("left").disabled = true;
+				$("#left").prop('disabled', true);
+                		$("#right").prop('disabled', true);
+			},
+                        error: function(data) {
+                                console.log(data);
+                        }
+                });
+	}
+	function back() {
+		$("#content").html(prevHTML);
+		$("#mailboxes").show();
+		document.getElementById("move").disabled = false;
+		document.getElementById("delete").disabled = false;
+		if (document.getElementById("movetoimportant"))
+			document.getElementById("movetoimportant").disabled = false;
+                //document.getElementById("right").disabled = false;
+                //document.getElementById("left").disabled = false;
+		$("#left").prop('disabled', false);
+		$("#right").prop('disabled', false);
 	}
 </script>

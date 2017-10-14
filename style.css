@@ -59,22 +59,29 @@ button {
 	margin-left: 40px;
 }
 
+#content {
+	max-width: 100%;
+	margin-right: 20px;
+}
+
 /* not working */
 input[type=checkbox] {
 	border: 2px solid black;
 }
 
-@media only screen and (max-width: 550px) {
+@media only screen and (max-width: 720px) {
 	#mailboxes {
-		width: 100%;
+		width: 93%;
+		padding-right: 16px;
 	}
 	#emails {
-		width: 100%;
+		width: 95%;
+		padding-right: 16px;
 	}
 }
 
-@media only screen and (max-width: 1000px) and (min-width: 550px) {
+@media only screen and (max-width: 900px) and (min-width: 720px) {
 	#emails {
-		width: 440px;
+		width: 550px;
 	}
 }
