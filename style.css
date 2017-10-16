@@ -12,19 +12,21 @@ body {
 	display: block;
 	height: auto;
 	max-width: 100%;
-	/*margin: auto;
-	margin-top: 10px;
-	margin-bottom: 10px;*/
 }
 
 #buttons {
 	margin-left: 160px;
-	/*text-align: center;*/
-	/*position: static;*/
 }
 
 button {
 	font-weight: bold;
+	cursor: pointer;
+	border-radius: 8px;
+	font-size: 14px;
+}
+
+button:hover {
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
 }
 
 #mailboxes {
@@ -36,6 +38,7 @@ button {
 	color: white;
 	font-family: system-ui;
     font-size: 20px;
+	cursor: pointer;
 }
 
 #mailboxes li {
@@ -57,6 +60,20 @@ button {
 #emails {
 	float: left;
 	margin-left: 40px;
+}
+
+td {
+	cursor: pointer;
+	padding-bottom: 7px;
+}
+
+th {
+	text-align: left;
+	background-color: lightblue;
+}
+
+tr:hover {
+	background-color: #5BBADE;
 }
 
 #content {

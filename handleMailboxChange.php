@@ -13,8 +13,7 @@ else if ($_GET['mailbox'] == 'inbox')
 	$query = 'UPDATE emails SET mailbox = \'inbox\' WHERE emailID =\''.$_GET['emailID'].'\'';
 else if ($_GET['mailbox'] == 'important')
 	$query = 'UPDATE emails SET mailbox = \'important\' WHERE emailID =\''.$_GET['emailID'].'\'';
-print $query.'<br>';
-// print $query.'<br>';
+
 $result = mysqli_query($conn, $query) or die('Error! '.mysqli_error($conn));
 
 // the result should be 1 if successful

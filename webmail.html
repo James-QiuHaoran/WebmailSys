@@ -5,7 +5,6 @@
 	<meta name="viewpoint" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<!--<script src="jquery-3.2.1.min.js"></script>-->
 	<title>My Web Mail System</title>
 </head>
 
@@ -50,32 +49,6 @@
 	
 	function pullEmails(){
 		console.log("pullEmails is called");
-		var xmlhttp;
-		if (window.XMLHttpRequest){ // for IE7+, Firefox, Chrome
-			xmlhttp = new XMLHttpRequest();
-		}else{ // for IE6, IE5
-			xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-		}
-
-		var nomore = false;
-		xmlhttp.onreadystatechange=function() {
-			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-				if (xmlhttp.responseText == '<table></table>') {
-					alert("No more emails!");
-					nomore = true;
-					if ($(".current").children().attr('id') == 'important') {
-						importantLastRecord -= 10;
-					}
-					else if ($(".current").children().attr('id') == 'trash') {
-						trashLastRecord -= 10;
-					} else {
-						inboxLastRecord -= 10;
-					}
-				} else
-					document.getElementById("content").innerHTML = xmlhttp.responseText;
-			}
-		}
-		
 		var url = "handleEmailDisplay.php?";
 		if ($(".current").children().attr('id') == 'important') {
 			url += "mailBox='important'&lastRecord=" + importantLastRecord;
@@ -88,9 +61,29 @@
 			url += "mailBox='inbox'&lastRecord=" + inboxLastRecord;
 			inboxLastRecord += 10;
 		}
+		$.ajax({
+			url: url,
+			type: 'get',
+			datatype: 'xml',
+			success: function(data) {
+				if (data == '<table></table>') {
+					alert("No more emails!");
+					nomore = true;
+					if ($(".current").children().attr('id') == 'important') {
+						importantLastRecord -= 10;
+					}
+					else if ($(".current").children().attr('id') == 'trash') {
+						trashLastRecord -= 10;
+					} else {
+						inboxLastRecord -= 10;
+					}
+				} else
+					document.getElementById("content").innerHTML = data;
+			},
+			error: function(data) {
 
-		xmlhttp.open("GET", url, true);
-		xmlhttp.send();
+			}
+		});
 		console.log("inbox: " + inboxLastRecord + " important: " + importantLastRecord + " trash: " + trashLastRecord);
 	}
 
@@ -122,7 +115,6 @@
 			alert("No email selected!");
 			return;
 		}
-		// console.log($("input:checked")[0].id); // attr("id") not work here
 		var checked = $("input:checked");
 		var ret;
 		if ($(item).text() == 'Delete')
@@ -140,31 +132,29 @@
 					url: path,
 					type: 'get',
 					datatype: 'json',
-					// data: id,
 					success: function(data) {
 						console.log("AJAX sucess! " + data);
+						if ($(".current").children().attr('id') == 'inbox') {
+							inboxLastRecord = inboxLastRecord - 10;
+							if (inboxLastRecord < 0)
+								inboxLastRecord = 0;
+						} else if ($(".current").children().attr('id') == 'important') {
+							importantLastRecord = importantLastRecord - 10;
+							if (importantLastRecord < 0)
+								importantLastRecord = 0;
+						} else if ($(".current").children().attr('id') == 'trash') {
+							trashLastRecord -= 10;
+							if (trashLastRecord < 0)
+								trashLastRecord = 0;
+						}
+						pullEmails();
 					},
 					error: function(data) {
 						console.log(data);
 					}
 				});
 			}
-			if ($(".current").children().attr('id') == 'inbox') {
-				inboxLastRecord = inboxLastRecord - 10;
-				if (inboxLastRecord < 0)
-					inboxLastRecord = 0;
-			} else if ($(".current").children().attr('id') == 'important') {
-				importantLastRecord = importantLastRecord - 10;
-				if (importantLastRecord < 0)
-					importantLastRecord = 0;
-			} else if ($(".current").children().attr('id') == 'trash') {
-				trashLastRecord -= 10;
-				if (trashLastRecord < 0)
-					trashLastRecord = 0;
-			}
-			// pullEmails();
 		}
-		pullEmails();
 	}
 
 	function moveEmails(item) {
@@ -188,29 +178,29 @@
 					type: 'get',
 					datatype: 'json',
 					success: function(data) {
-						console.log("AJAX success! " + data)
+						console.log("AJAX success! " + data);
+						if ($(".current").children().attr('id') == 'inbox') {
+	                        inboxLastRecord = inboxLastRecord - 10;
+        	                if (inboxLastRecord < 0)
+                	                inboxLastRecord = 0;
+	                	} else if ($(".current").children().attr('id') == 'important') {
+	                        	importantLastRecord = importantLastRecord - 10;
+	                        	if (importantLastRecord < 0)
+	                                	importantLastRecord = 0;
+	                	} else if ($(".current").children().attr('id') == 'trash') {
+	                        	trashLastRecord -= 10;
+	                        	if (trashLastRecord < 0)
+	                                	trashLastRecord = 0;
+	                	}
+	                	pullEmails();
 					},
 					error: function(data) {
 						console.log(data);
 					}
 				});
 			}
-			if ($(".current").children().attr('id') == 'inbox') {
-	                        inboxLastRecord = inboxLastRecord - 10;
-        	                if (inboxLastRecord < 0)
-                	                inboxLastRecord = 0;
-                	} else if ($(".current").children().attr('id') == 'important') {
-                        	importantLastRecord = importantLastRecord - 10;
-                        	if (importantLastRecord < 0)
-                                	importantLastRecord = 0;
-                	} else if ($(".current").children().attr('id') == 'trash') {
-                        	trashLastRecord -= 10;
-                        	if (trashLastRecord < 0)
-                                	trashLastRecord = 0;
-                	}
-                	// pullEmails();
 		}
-		pullEmails();
+		// pullEmails();
 	}
 </script>
 <script type="text/javascript">
@@ -241,27 +231,25 @@
 	function showContent(item) {
 		var url = "handleContentRequest.php?emailID=" + $(item).attr("rowid");
 		$.ajax({
-                        url: url,
-                        type: 'get',
-                        datatype: 'json',
-                        success: function(data) {
-                                console.log("AJAX success! ");
+            url: url,
+            type: 'get',
+            datatype: 'json',
+            success: function(data) {
+                console.log("AJAX success! ");
 				prevHTML = $("#content").html();
-			        $("#content").html(data);
+			    $("#content").html(data);
 				$("#mailboxes").hide();
 				document.getElementById("move").disabled = true;
-                		document.getElementById("delete").disabled = true;
-                		if (document.getElementById("movetoimportant"))
+                document.getElementById("delete").disabled = true;
+                if (document.getElementById("movetoimportant"))
 					document.getElementById("movetoimportant").disabled = true;
-                        	//document.getElementById("right").disabled = true;
-                		//document.getElementById("left").disabled = true;
 				$("#left").prop('disabled', true);
-                		$("#right").prop('disabled', true);
+            	$("#right").prop('disabled', true);
 			},
-                        error: function(data) {
-                                console.log(data);
-                        }
-                });
+            error: function(data) {
+                console.log(data);
+            }
+        });
 	}
 	function back() {
 		$("#content").html(prevHTML);
@@ -270,8 +258,6 @@
 		document.getElementById("delete").disabled = false;
 		if (document.getElementById("movetoimportant"))
 			document.getElementById("movetoimportant").disabled = false;
-                //document.getElementById("right").disabled = false;
-                //document.getElementById("left").disabled = false;
 		$("#left").prop('disabled', false);
 		$("#right").prop('disabled', false);
 	}
